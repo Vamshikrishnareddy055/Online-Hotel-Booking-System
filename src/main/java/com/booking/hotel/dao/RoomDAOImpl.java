@@ -3,8 +3,7 @@ package com.booking.hotel.dao;
 import com.booking.hotel.model.Hotel;
 import com.booking.hotel.model.Room;
 import com.booking.hotel.util.JdbcUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,8 +15,8 @@ import java.util.List;
 
 public class RoomDAOImpl implements RoomDAO {
 
-    // Records each room-table action. The {} placeholders are filled by the values passed after the message.
-    private static final Logger logger = LoggerFactory.getLogger(RoomDAOImpl.class);
+    // Records each room-table action. Messages are plain strings.
+    private static final Logger logger = Logger.getLogger(RoomDAOImpl.class.getName());
 
     private static final String SQL_INSERT_ROOM =
             "INSERT INTO room (hotel_id, room_number, room_type, capacity, base_price, status) "
@@ -47,7 +46,7 @@ public class RoomDAOImpl implements RoomDAO {
 
             setRoomColumns(statement, room);
 
-            logger.debug("Inserting room with number {}", room.getRoomNumber());
+            logger.fine("Inserting room with number " + room.getRoomNumber());
             int rows = statement.executeUpdate();
 
             try (ResultSet keys = statement.getGeneratedKeys()) {
@@ -57,7 +56,7 @@ public class RoomDAOImpl implements RoomDAO {
             }
 
             if (rows > 0) {
-                logger.info("Inserted room id={}", room.getRoomId());
+                logger.info("Inserted room id=" + room.getRoomId());
             }
             return rows > 0;
         }
@@ -71,12 +70,12 @@ public class RoomDAOImpl implements RoomDAO {
 
             statement.setLong(1, roomId);
 
-            logger.debug("Selecting room with id {}", roomId);
+            logger.fine("Selecting room with id " + roomId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return mapRow(resultSet);
                 }
-                logger.warn("No room found for id {}", roomId);
+                logger.warning("No room found for id " + roomId);
                 return null;
             }
         }
@@ -92,7 +91,7 @@ public class RoomDAOImpl implements RoomDAO {
 
             statement.setLong(1, hotelId);
 
-            logger.debug("Selecting rooms for hotel id {}", hotelId);
+            logger.fine("Selecting rooms for hotel id " + hotelId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     rooms.add(mapRow(resultSet));
@@ -101,7 +100,7 @@ public class RoomDAOImpl implements RoomDAO {
         }
 
         if (rooms.isEmpty()) {
-            logger.warn("No rooms found for hotel id {}", hotelId);
+            logger.warning("No rooms found for hotel id " + hotelId);
         }
         return rooms;
     }
@@ -115,10 +114,10 @@ public class RoomDAOImpl implements RoomDAO {
             statement.setString(1, status);
             statement.setLong(2, roomId);
 
-            logger.debug("Updating status for room id {}", roomId);
+            logger.fine("Updating status for room id " + roomId);
             int rows = statement.executeUpdate();
             if (rows > 0) {
-                logger.info("Updated room id={}", roomId);
+                logger.info("Updated room id=" + roomId);
             }
             return rows > 0;
         }
@@ -133,10 +132,10 @@ public class RoomDAOImpl implements RoomDAO {
             setRoomColumns(statement, room);
             statement.setLong(7, room.getRoomId());
 
-            logger.debug("Updating room with id {}", room.getRoomId());
+            logger.fine("Updating room with id " + room.getRoomId());
             int rows = statement.executeUpdate();
             if (rows > 0) {
-                logger.info("Updated room id={}", room.getRoomId());
+                logger.info("Updated room id=" + room.getRoomId());
             }
             return rows > 0;
         }
@@ -149,10 +148,10 @@ public class RoomDAOImpl implements RoomDAO {
              PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
 
             statement.setLong(1, roomId);
-            logger.debug("Deleting room with id {}", roomId);
+            logger.fine("Deleting room with id " + roomId);
             int rows = statement.executeUpdate();
             if (rows > 0) {
-                logger.info("Deleted room id={}", roomId);
+                logger.info("Deleted room id=" + roomId);
             }
             return rows > 0;
         }

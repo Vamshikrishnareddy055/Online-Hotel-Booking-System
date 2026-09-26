@@ -3,8 +3,7 @@ package com.booking.hotel.dao;
 import com.booking.hotel.model.Hotel;
 import com.booking.hotel.model.Location;
 import com.booking.hotel.util.JdbcUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,8 +16,8 @@ import java.util.List;
 
 public class HotelDAOImpl implements HotelDAO {
 
-    // Records each hotel-table action. The {} placeholders are filled by the values passed after the message.
-    private static final Logger logger = LoggerFactory.getLogger(HotelDAOImpl.class);
+    // Records each hotel-table action. Messages are plain strings.
+    private static final Logger logger = Logger.getLogger(HotelDAOImpl.class.getName());
 
     private static final String SQL_INSERT_HOTEL =
             "INSERT INTO hotel (location_id, name, description, address, city, state, "
@@ -49,7 +48,7 @@ public class HotelDAOImpl implements HotelDAO {
 
             setHotelColumns(statement, hotel);
 
-            logger.debug("Inserting hotel with name {}", hotel.getName());
+            logger.fine("Inserting hotel with name " + hotel.getName());
             int rows = statement.executeUpdate();
 
             try (ResultSet keys = statement.getGeneratedKeys()) {
@@ -59,7 +58,7 @@ public class HotelDAOImpl implements HotelDAO {
             }
 
             if (rows > 0) {
-                logger.info("Inserted hotel id={}", hotel.getHotelId());
+                logger.info("Inserted hotel id=" + hotel.getHotelId());
             }
             return rows > 0;
         }
@@ -73,12 +72,12 @@ public class HotelDAOImpl implements HotelDAO {
 
             statement.setLong(1, hotelId);
 
-            logger.debug("Selecting hotel with id {}", hotelId);
+            logger.fine("Selecting hotel with id " + hotelId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return mapRow(resultSet);
                 }
-                logger.warn("No hotel found for id {}", hotelId);
+                logger.warning("No hotel found for id " + hotelId);
                 return null;
             }
         }
@@ -94,7 +93,7 @@ public class HotelDAOImpl implements HotelDAO {
 
             statement.setString(1, city);
 
-            logger.debug("Selecting hotels in city {}", city);
+            logger.fine("Selecting hotels in city " + city);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     hotels.add(mapRow(resultSet));
@@ -103,7 +102,7 @@ public class HotelDAOImpl implements HotelDAO {
         }
 
         if (hotels.isEmpty()) {
-            logger.warn("No hotels found in city {}", city);
+            logger.warning("No hotels found in city " + city);
         }
         return hotels;
     }
@@ -116,7 +115,7 @@ public class HotelDAOImpl implements HotelDAO {
         try (Connection connection = JdbcUtil.getConnection();
              PreparedStatement statement = connection.prepareStatement(SQL_FIND_ALL)) {
 
-            logger.debug("Selecting all hotels");
+            logger.fine("Selecting all hotels");
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     hotels.add(mapRow(resultSet));
@@ -125,7 +124,7 @@ public class HotelDAOImpl implements HotelDAO {
         }
 
         if (hotels.isEmpty()) {
-            logger.warn("No hotels found");
+            logger.warning("No hotels found");
         }
         return hotels;
     }
@@ -139,10 +138,10 @@ public class HotelDAOImpl implements HotelDAO {
             setHotelColumns(statement, hotel);
             statement.setLong(11, hotel.getHotelId());
 
-            logger.debug("Updating hotel with id {}", hotel.getHotelId());
+            logger.fine("Updating hotel with id " + hotel.getHotelId());
             int rows = statement.executeUpdate();
             if (rows > 0) {
-                logger.info("Updated hotel id={}", hotel.getHotelId());
+                logger.info("Updated hotel id=" + hotel.getHotelId());
             }
             return rows > 0;
         }
@@ -155,10 +154,10 @@ public class HotelDAOImpl implements HotelDAO {
              PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
 
             statement.setLong(1, hotelId);
-            logger.debug("Deleting hotel with id {}", hotelId);
+            logger.fine("Deleting hotel with id " + hotelId);
             int rows = statement.executeUpdate();
             if (rows > 0) {
-                logger.info("Deleted hotel id={}", hotelId);
+                logger.info("Deleted hotel id=" + hotelId);
             }
             return rows > 0;
         }

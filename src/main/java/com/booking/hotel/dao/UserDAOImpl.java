@@ -2,8 +2,7 @@ package com.booking.hotel.dao;
 
 import com.booking.hotel.model.User;
 import com.booking.hotel.util.JdbcUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -15,8 +14,8 @@ import java.util.List;
 
 public class UserDAOImpl implements UserDAO {
 
-    // Records each user-table action. The {} placeholders are filled by the values passed after the message.
-    private static final Logger logger = LoggerFactory.getLogger(UserDAOImpl.class);
+    // Records each user-table action. Messages are plain strings.
+    private static final Logger logger = Logger.getLogger(UserDAOImpl.class.getName());
 
     private static final String SQL_INSERT_USER =
             "INSERT INTO `user` (full_name, email, password_hash, phone, role, status) "
@@ -48,7 +47,7 @@ public class UserDAOImpl implements UserDAO {
             statement.setString(5, user.getRole());
             statement.setString(6, user.getStatus());
 
-            logger.debug("Inserting user with email {}", user.getEmail());
+            logger.fine("Inserting user with email " + user.getEmail());
             int rows = statement.executeUpdate();
 
             try (ResultSet keys = statement.getGeneratedKeys()) {
@@ -58,7 +57,7 @@ public class UserDAOImpl implements UserDAO {
             }
 
             if (rows > 0) {
-                logger.info("Inserted user id={}", user.getUserId());
+                logger.info("Inserted user id=" + user.getUserId());
             }
             return rows > 0;
         }
@@ -72,12 +71,12 @@ public class UserDAOImpl implements UserDAO {
 
             statement.setLong(1, userId);
 
-            logger.debug("Selecting user with id {}", userId);
+            logger.fine("Selecting user with id " + userId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return mapRow(resultSet);
                 }
-                logger.warn("No user found for id {}", userId);
+                logger.warning("No user found for id " + userId);
                 return null;
             }
         }
@@ -91,7 +90,7 @@ public class UserDAOImpl implements UserDAO {
         try (Connection connection = JdbcUtil.getConnection();
              PreparedStatement statement = connection.prepareStatement(SQL_FIND_ALL)) {
 
-            logger.debug("Selecting all users");
+            logger.fine("Selecting all users");
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     users.add(mapRow(resultSet));
@@ -100,7 +99,7 @@ public class UserDAOImpl implements UserDAO {
         }
 
         if (users.isEmpty()) {
-            logger.warn("No users found");
+            logger.warning("No users found");
         }
         return users;
     }
@@ -119,10 +118,10 @@ public class UserDAOImpl implements UserDAO {
             statement.setString(6, user.getStatus());
             statement.setLong(7, user.getUserId());
 
-            logger.debug("Updating user with id {}", user.getUserId());
+            logger.fine("Updating user with id " + user.getUserId());
             int rows = statement.executeUpdate();
             if (rows > 0) {
-                logger.info("Updated user id={}", user.getUserId());
+                logger.info("Updated user id=" + user.getUserId());
             }
             return rows > 0;
         }
@@ -135,10 +134,10 @@ public class UserDAOImpl implements UserDAO {
              PreparedStatement statement = connection.prepareStatement(SQL_DELETE)) {
 
             statement.setLong(1, userId);
-            logger.debug("Deleting user with id {}", userId);
+            logger.fine("Deleting user with id " + userId);
             int rows = statement.executeUpdate();
             if (rows > 0) {
-                logger.info("Deleted user id={}", userId);
+                logger.info("Deleted user id=" + userId);
             }
             return rows > 0;
         }
