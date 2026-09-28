@@ -6,17 +6,19 @@ public class Review {
     private User user;   // using FK
     private Hotel hotel;  // using FK
     private int rating;
+    private String title;
     private String comment;
 
     public Review() {
     }
 
     public Review(long reviewId, User user, Hotel hotel,
-                  int rating, String comment) {
+                  int rating, String title, String comment) {
         this.reviewId = reviewId;
         this.user = user;
         this.hotel = hotel;
         this.rating = rating;
+        this.title = title;
         this.comment = comment;
     }
 
@@ -50,6 +52,14 @@ public class Review {
 
     public void setRating(int rating) {
         this.rating = rating;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getComment() {
