@@ -11,6 +11,8 @@ public interface UserDAO {
 
     User findById(long userId) throws SQLException;
 
+    User findByEmail(String email) throws SQLException;
+
     List<User> findAll() throws SQLException;
 
     boolean update(User user) throws SQLException;

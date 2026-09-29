@@ -71,6 +71,22 @@ class UserDAOImplTest {
         assertEquals(user.getStatus(), found.getStatus());
     }
 
+    // Checks that findByEmail returns the inserted user, and null when the email is not stored.
+    @Test
+    void findByEmailReturnsInsertedUserAndNullWhenMissing() throws SQLException {
+        User user = newTestUser();
+        userDAO.create(user);
+        createdUserId = user.getUserId();
+
+        User found = userDAO.findByEmail(user.getEmail());
+
+        assertNotNull(found);
+        assertEquals(createdUserId, found.getUserId());
+        assertEquals(user.getFullName(), found.getFullName());
+
+        assertNull(userDAO.findByEmail("missing-" + UUID.randomUUID() + "@example.com"));
+    }
+
     // Checks that update changes a saved field, and delete makes findById return null.
     @Test
     void updateChangesPhoneAndDeleteRemovesUser() throws SQLException {

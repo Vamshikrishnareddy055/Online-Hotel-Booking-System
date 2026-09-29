@@ -24,6 +24,9 @@ public class UserDAOImpl implements UserDAO {
     private static final String SQL_FIND_BY_ID =
             "SELECT * FROM `user` WHERE user_id = ?";
 
+    private static final String SQL_FIND_BY_EMAIL =
+            "SELECT * FROM `user` WHERE email = ?";
+
     private static final String SQL_FIND_ALL =
             "SELECT * FROM `user`";
 
@@ -77,6 +80,25 @@ public class UserDAOImpl implements UserDAO {
                     return mapRow(resultSet);
                 }
                 logger.warning("No user found for id " + userId);
+                return null;
+            }
+        }
+    }
+
+    // Selects the one user row whose email matches the given address.
+    @Override
+    public User findByEmail(String email) throws SQLException {
+        try (Connection connection = JdbcUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_FIND_BY_EMAIL)) {
+
+            statement.setString(1, email);
+
+            logger.fine("Selecting user with email " + email);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return mapRow(resultSet);
+                }
+                logger.warning("No user found for email " + email);
                 return null;
             }
         }
