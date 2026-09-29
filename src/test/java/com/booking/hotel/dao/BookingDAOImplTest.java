@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -149,6 +150,42 @@ class BookingDAOImplTest {
         assertTrue(found);
     }
 
+    // Checks that findAll includes the booking that was just inserted.
+    @Test
+    void findAllIncludesCreatedBooking() throws SQLException {
+        Booking booking = newTestBooking();
+        bookingDAO.create(booking);
+        createdBookingId = booking.getBookingId();
+
+        List<Booking> bookings = bookingDAO.findAll();
+
+        boolean found = false;
+        for (Booking candidate : bookings) {
+            if (candidate.getBookingId() == createdBookingId) {
+                found = true;
+            }
+        }
+        assertTrue(found);
+    }
+
+    // The same dates overlap. The check-out day itself is free, and a cancelled booking does not block the room.
+    @Test
+    void findOverlappingMatchesSameDatesAndIgnoresCancelled() throws SQLException {
+        Booking booking = newTestBooking();
+        bookingDAO.create(booking);
+        createdBookingId = booking.getBookingId();
+
+        assertTrue(containsBooking(bookingDAO.findOverlapping(
+                testRoom.getRoomId(), booking.getCheckInDate(), booking.getCheckOutDate())));
+
+        assertFalse(containsBooking(bookingDAO.findOverlapping(
+                testRoom.getRoomId(), booking.getCheckOutDate(), booking.getCheckOutDate().plusDays(2))));
+
+        bookingDAO.updateStatus(createdBookingId, "CANCELLED");
+        assertFalse(containsBooking(bookingDAO.findOverlapping(
+                testRoom.getRoomId(), booking.getCheckInDate(), booking.getCheckOutDate())));
+    }
+
     // Checks that updateStatus changes booking_status and findById returns the new value.
     @Test
     void updateStatusChangesBookingStatus() throws SQLException {
@@ -161,6 +198,15 @@ class BookingDAOImplTest {
         Booking found = bookingDAO.findById(createdBookingId);
         assertNotNull(found);
         assertEquals("CANCELLED", found.getBookingStatus());
+    }
+
+    private boolean containsBooking(List<Booking> bookings) {
+        for (Booking candidate : bookings) {
+            if (candidate.getBookingId() == createdBookingId) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private User newTestUser() {

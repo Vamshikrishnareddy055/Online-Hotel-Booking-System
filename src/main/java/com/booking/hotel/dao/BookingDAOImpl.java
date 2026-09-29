@@ -13,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +32,14 @@ public class BookingDAOImpl implements BookingDAO {
 
     private static final String SQL_FIND_BY_USER =
             "SELECT * FROM booking WHERE user_id = ?";
+
+    private static final String SQL_FIND_ALL =
+            "SELECT * FROM booking";
+
+    // A later guest may check in on the earlier guest's check-out day, so that day is not an overlap.
+    private static final String SQL_FIND_OVERLAPPING =
+            "SELECT * FROM booking WHERE room_id = ? AND booking_status <> 'CANCELLED' "
+                    + "AND check_in_date < ? AND check_out_date > ?";
 
     private static final String SQL_UPDATE_STATUS =
             "UPDATE booking SET booking_status = ? WHERE booking_id = ?";
@@ -102,6 +111,51 @@ public class BookingDAOImpl implements BookingDAO {
         if (bookings.isEmpty()) {
             logger.warning("No bookings found for user id " + userId);
         }
+        return bookings;
+    }
+
+    // Selects every row from the booking table.
+    @Override
+    public List<Booking> findAll() throws SQLException {
+        List<Booking> bookings = new ArrayList<>();
+
+        try (Connection connection = JdbcUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_FIND_ALL)) {
+
+            logger.fine("Selecting all bookings");
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    bookings.add(mapRow(resultSet));
+                }
+            }
+        }
+
+        if (bookings.isEmpty()) {
+            logger.warning("No bookings found");
+        }
+        return bookings;
+    }
+
+    // Selects confirmed bookings for this room that cover any night of the requested stay.
+    @Override
+    public List<Booking> findOverlapping(long roomId, LocalDate checkIn, LocalDate checkOut) throws SQLException {
+        List<Booking> bookings = new ArrayList<>();
+
+        try (Connection connection = JdbcUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_FIND_OVERLAPPING)) {
+
+            statement.setLong(1, roomId);
+            statement.setDate(2, Date.valueOf(checkOut));
+            statement.setDate(3, Date.valueOf(checkIn));
+
+            logger.fine("Selecting overlapping bookings for room id " + roomId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    bookings.add(mapRow(resultSet));
+                }
+            }
+        }
+
         return bookings;
     }
 
